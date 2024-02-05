@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  # MongoDB container
+  mongo:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
+  # Node.js application container 
+  node-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: node-app
+    depends_on:
+      - mongo
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      JWT_SECRET: "hospital-01"
+
+      
+      MONGO_URI: "mongodb://root:example@mongo:27017/appointment_system"  # Update with your database name
