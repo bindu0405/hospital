@@ -70,17 +70,35 @@ async function loginDoctor(doctorData, emailId, password, confirmPw){
 
       const decodedToken=Token.verifyToken(token)
       console.log(doctors, token, decodedToken, "000000000")
+      //let flag=false;
       if(password!=confirmPw){
         return {message: "please check the password & confirmPw must be same"}
       }
       else{
+        //flag=true
         const state=await Doctor.updateOne(doctors, {$set:{status:"online"}})//doctors.status="online";
        
         return {doctors, token}
       }
+      // if(flag){
+      //   const state=await Doctor.updateOne(doctors, {$set:{status:"online"}})//doctors.status="online";
+      //   return {doctors, token}
+      // }
 
   }catch(err){
     throw err;
+  }
+
+}
+async function logoutDoctor(emailId){
+  try{
+    const doctors=await Doctor.findOne({emailId:emailId})
+    console.log(doctors, "00000000000")
+    const state=await Doctor.updateOne(doctors, {$set:{status:"offline"}})
+    console.log(doctors, "00000000000")
+    return {doctors};
+  }catch(error){
+    throw error;
   }
 
 }
@@ -98,5 +116,6 @@ async function getDoctorByEmail(emailId) {
 module.exports = {
   createDoctor,
   getDoctorByEmail,
-  loginDoctor
+  loginDoctor,
+  logoutDoctor
 };

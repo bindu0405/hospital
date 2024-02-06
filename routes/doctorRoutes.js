@@ -29,6 +29,16 @@ router.post('/doctors/login', async function(req, res){
   }
 })
 
+router.post('/doctors/logout', async function(req, res){
+  try{
+    const emailId=req.body.emailId;
+    const result=await doctorService.logoutDoctor( emailId);
+   res.status(201).json({doctor:result.doctors})
+  }catch(err){
+    throw err;
+  }
+})
+
 router.get('/doctors/:emailId', async (req, res) => {
   try {
     const emailId = req.params.emailId;

@@ -17,3 +17,23 @@ try {
 module.exports={handleDecodedPayload:handleDecodedPayload};
 
 
+let isDoctorOnline = false;
+
+app.use(bodyParser.json());
+
+// Endpoint to get the doctor's status
+app.get('/doctor/status', (req, res) => {
+  res.json({ status: isDoctorOnline ? 'online' : 'offline' });
+});
+
+// Endpoint to simulate doctor login
+app.post('/doctor/login', (req, res) => {
+  isDoctorOnline = true;
+  res.json({ status: 'online' });
+});
+
+// Endpoint to simulate doctor logout
+app.post('/doctor/logout', (req, res) => {
+  isDoctorOnline = false;
+  res.json({ status: 'offline' });
+});
