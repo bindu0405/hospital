@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const Doctor = require('../models/doctor')
 const doctorService = require('../services/doctorService');
 
 router.post('/doctors', async function(req, res){
@@ -10,6 +11,7 @@ router.post('/doctors', async function(req, res){
      req.token = bearerHeader.replace('Bearer ', '');
     }
     const createdDoctor = await doctorService.createDoctor(doctorData, req.token);
+    
     res.status(201).json(createdDoctor);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -49,6 +51,21 @@ router.get('/doctors/:emailId', async (req, res) => {
     }
 
     res.json(doctor);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/getAllDoctors', async (req, res) => {
+  try {
+    const emailId = req.params.emailId;
+    const doctor = await doctorService.getAllDoctors();
+
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor not found' });
+    }
+
+    res.json(doctor.results);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

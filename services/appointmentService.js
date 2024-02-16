@@ -1,12 +1,19 @@
-const Appointment = require('../models/appointmentModel');
-const Doctor= require('../models/doctor')
-const Patient= require('../models/patientModel')
-const Token= require('../loaders/jwt') 
+let Appointment = require('../models/appointmentModel');
+let Doctor= require('../models/doctor')
+let Patient= require('../models/patientModel')
+let Token= require('../loaders/jwt') 
+let websocket= require('../lib/websocketcom')
+//let noti= require('../lib/sendnotification')
 
 async function doctorsData(req, res){
   try{
-    const appointment = new Doctor(req.params);
-    const doctors= await Doctor.find()
+    let appointment = new Doctor(req.params);
+    let doctors=await Doctor.find()
+   // let notify=await noti.notification(doctors);
+    //console.log(notify, "===========")
+    let map=websocket.io;
+   // console.log(map, "========----------")
+    
     console.log( doctors,  "==========")
     res.status(201).json(doctors)
   }catch(err){
@@ -18,34 +25,34 @@ async function doctorsData(req, res){
 
 async function createAppointment(req, res) {
   try {
-    const appointment = new Appointment(req.body);
+    let appointment = new Appointment(req.body);
 
     // Fetch doctor details
-    const doctor = await Doctor.findOne({ _id: appointment.doctorId });
+    let doctor = await Doctor.findOne({ _id: appointment.doctorId });
     console.log(doctor, "----------");
 
     // Verify authorization token
-    const bearerHeader = req.headers['authorization'];
+    let bearerHeader = req.headers['authorization'];
     if (!bearerHeader) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const token = bearerHeader.replace('Bearer ', '');
-    const decodedToken = await Token.verifyToken(token);
+    var token = bearerHeader.replace('Bearer ', '');
+    var decodedToken = await Token.verifyToken(token);
     console.log("Decoded Token:", decodedToken, decodedToken.email);
 
     // Fetch patient details
-    const patient = await Patient.findOne({ email: decodedToken.email });
+    var patient = await Patient.findOne({ email: decodedToken.email });
     console.log(patient, "===");
 
     // Check if the appointment is for the authenticated patient
     if (decodedToken.email === appointment.patientEmail) {
       // Check if the new appointment starts after the previous appointment ends
-      const previousAppointment = await Appointment.findOne({ doctorId: appointment.doctorId }).sort({ endTime: -1 });
+      var previousAppointment = await Appointment.findOne({ doctorId: appointment.doctorId }).sort({ endTime: -1 });
       if (previousAppointment && appointment.startTime <= previousAppointment.endTime) {
         return res.status(400).json({ message: 'New appointment must start after the previous appointment ends.' });
       }
-      const savedAppointment = await appointment.save();
+      let savedAppointment = await appointment.save();
       res.status(201).json({ savedAppointment, doctor, patient });
     } else {
       res.status(403).json({ message: "Invalid patient credentials" });
@@ -61,14 +68,14 @@ async function createAppointment(req, res) {
 async function getAllDoctorAppointments(req, res) {
   try {
     var token;
-    const bearerHeader = req.headers['authorization']
+    let bearerHeader = req.headers['authorization']
     if (typeof bearerHeader !== 'undefined') {
       token = bearerHeader.replace('Bearer ', '');
     }
 
-    const decodedToken = await Token.verifyToken(token);
+    let decodedToken = await Token.verifyToken(token);
     console.log("Decoded Token:", decodedToken, decodedToken.email);
-    const appointments = await Appointment.find({ doctorId: decodedToken.userId });
+    let appointments = await Appointment.find({ doctorId: decodedToken.userId });
     const mails = appointments.map(obj => obj.patientEmail);
     console.log(appointments, mails, "--------------")
     var Array = [];
@@ -135,7 +142,7 @@ async function getAllPatientAppointments(req, res){
      token = bearerHeader.replace('Bearer ', '');
     }
 
-    const decodedToken = await Token.verifyToken(token);
+    var decodedToken = await Token.verifyToken(token);
     console.log("Decoded Token:", decodedToken, decodedToken.email);
     const appointment=await Appointment.find({patientEmail:decodedToken.email})
     const email = appointment.map(obj => obj.patientEmail);
@@ -190,14 +197,14 @@ async function confirmAppointment(req, res){
   try{
     const appointments= req.body;
     var token;
-    const bearerHeader = req.headers['authorization']
+    var bearerHeader = req.headers['authorization']
     if (typeof bearerHeader !== 'undefined') {
      token = bearerHeader.replace('Bearer ', '');
     }
 
-    const decodedToken = await Token.verifyToken(token);
+    var decodedToken = await Token.verifyToken(token);
     console.log("Decoded Token:", decodedToken, decodedToken.email);
-    const appointment = await Appointment.findOne({_id:appointments.appointmentId});
+    var appointment = await Appointment.findOne({_id:appointments.appointmentId});
     console.log(appointment, "------------")
     if(decodedToken.userId!=appointment.doctorId){
       throw new Error('invaild doctor credentials');
@@ -222,16 +229,16 @@ async function confirmAppointment(req, res){
 
 async function cancelAppointment(req, res){
   try{ 
-    const appointments= req.body;
+    var appointments= req.body;
     var token;
-    const bearerHeader = req.headers['authorization']
+    var bearerHeader = req.headers['authorization']
     if (typeof bearerHeader !== 'undefined') {
      token = bearerHeader.replace('Bearer ', '');
     }
 
-    const decodedToken = await Token.verifyToken(token);
+    var decodedToken = await Token.verifyToken(token);
     console.log("Decoded Token:", decodedToken, decodedToken.email);
-    const appointment = await Appointment.findOne({_id:appointments.appointmentId});
+    let appointment = await Appointment.findOne({_id:appointments.appointmentId});
     console.log(appointment, "------------")
     if(decodedToken.email!=appointment.patientEmail){
       throw new Error('invaild patient credentials');
@@ -257,7 +264,7 @@ async function cancelAppointment(req, res){
 // Service to update an appointment by ID
 async function updateAppointment(req, res) {
   try {
-    const updatedAppointment = await Appointment.findByIdAndUpdate(
+    let updatedAppointment = await Appointment.findByIdAndUpdate(
       req.params.appointmentId,
       req.body,
       { new: true }
@@ -275,7 +282,7 @@ async function updateAppointment(req, res) {
 // Service to delete an appointment by ID
 async function deleteAppointment(req, res) {
   try {
-    const deletedAppointment = await Appointment.findByIdAndDelete(req.params.appointmentId);
+    let deletedAppointment = await Appointment.findByIdAndDelete(req.params.appointmentId);
     if (deletedAppointment) {
       res.status(200).json({ message: 'Appointment deleted successfully' });
     } else {

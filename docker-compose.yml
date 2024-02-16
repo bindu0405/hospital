@@ -24,6 +24,6 @@ services:
     environment:
       NODE_ENV: production
       JWT_SECRET: "hospital-01"
-
+      
       
       MONGO_URI: "mongodb://root:example@mongo:27017/appointment_system"  # Update with your database name

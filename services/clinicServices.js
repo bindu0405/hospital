@@ -3,6 +3,9 @@ const Token =require('../loaders/jwt')
 const Admin = require('../models/adminModel')
 const Email = require('../lib/validator');
 const sendmail = require('../lib/sendmail');
+let noti= require('../lib/sendnotification')
+
+
 
 async function registerClinic(clinicData,token) {    //token is nothing but req.token, pop=req.token
   try {
@@ -10,12 +13,44 @@ async function registerClinic(clinicData,token) {    //token is nothing but req.
     const decodedToken = await Token.verifyToken(token);
     console.log("Decoded Token:", decodedToken);
   
-    const admin = await Admin.findById({_id:decodedToken.userId})
+    let admin = await Admin.findById({_id:decodedToken.userId})
     console.log( admin,admin.emailId,  "+++++++++++++admin admin")
-    const clinics=await Clinic.findOne({clinicId:clinicData.clinicId});
-    const email= await Clinic.findOne({clinicEmail:clinicData.clinicEmail})
+    let clinics=await Clinic.findOne({clinicId:clinicData.clinicId});
+    let email= await Clinic.findOne({clinicEmail:clinicData.clinicEmail})
+   
+   const { MongoClient } = require('mongodb');
+   
+   let uri = 'mongodb://localhost:27017/appointment_system';
+   let databaseName = 'appointment_system';
+   let collectionName = 'clinics';
+   
+  // Connect to MongoDB
+MongoClient.connect(uri)
+.then(client => {
+  console.log("Connected to MongoDB successfully");
+  const db = client.db(databaseName);
+  const collection = db.collection(collectionName);
 
-    try {  
+  // Perform aggregation
+  return collection.aggregate([
+    // Your aggregation pipeline stages here
+    //{ $group: {  _id: "$clinicName",  total: {$sum: "$clinics" }} }
+    { $unwind: "$timings" }, // Deconstruct the items array => it seperates an arr in an arr or arr of obj.
+
+    { $match: { clinicName: "rkkloll" } },
+    {$sort: { clinicId: -1 } }, // Sort by total quantity in descending order  
+    { $limit: 3} , // Get only the top 5 products
+  ]).toArray();
+  
+})
+.then(result => {
+  console.log("Aggregation result:", result);
+})
+.catch(error => {
+  console.log("Error during aggregation:", error);
+});
+
+  try {  
     if(admin!=null){
       if(clinics!=null){
         return {message:" clinicId already existed"}
@@ -24,12 +59,15 @@ async function registerClinic(clinicData,token) {    //token is nothing but req.
         return {message: " emailId alreay existed! give uniqe emailId"}
       }  
       else{
-            let password = sendmail.generateTemporaryPassword();
-            clinicData.password = password;
-            const clinic= new Clinic(clinicData);
-            await clinic.save();
-         let emailSending= sendmail.sendTemporaryPassword( password)
-         console.log(emailSending, "0---")
+        //send email
+            //let password = sendmail.generateTemporaryPassword();
+            //clinicData.password = password;
+             const clinic= new Clinic(clinicData);
+             await clinic.save();
+          //let emailSending= sendmail.sendTemporaryPassword( password)
+
+         let notify=await noti.sendNotificationAndEmail(sendmail);
+         console.log(notify,  "0---")
          return clinic;
       }
     }
@@ -37,9 +75,9 @@ async function registerClinic(clinicData,token) {    //token is nothing but req.
       return {message: "invalid admin credentials"}
     }
     
-    } catch (error) {
-     console.error('Error decoding token:', error.message);
-    }
+  } catch (error) {
+    console.error('Error decoding token:', error.message);
+  }
    
   } catch (error) {
      throw error;
@@ -49,13 +87,13 @@ async function registerClinic(clinicData,token) {    //token is nothing but req.
 async function loginClinic(  email, clinicId){
   try {
     console.log(email,Clinic,clinicId, "emailId??")
-    const clinics = await Clinic.findOne({clinicId:clinicId})
+    let clinics = await Clinic.findOne({clinicId:clinicId})
    
     // Generate JWT token
-    const token = Token.generateToken(clinics._id,'clinic',clinics.email, clinics.clinicId); 
+    let token = Token.generateToken(clinics._id,'clinic',clinics.email, clinics.clinicId); 
       console.log(clinics, token ,"888888888888")
 
-      const decodedToken = await Token.verifyToken(token);
+      let decodedToken = await Token.verifyToken(token);
       console.log("Decoded Token:", decodedToken);
       
       return { clinics, token};

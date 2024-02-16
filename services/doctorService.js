@@ -1,27 +1,27 @@
-const Doctor = require('../models/doctor');
-const Clinic = require('../models/clinicModel')
-const Email= require('../lib/validator');
-const Token= require('../loaders/jwt');
-const WebSocket=require('../lib/websocketcom')
+var Doctor = require('../models/doctor');
+var Clinic = require('../models/clinicModel')
+var Email= require('../lib/validator');
+let Token= require('../loaders/jwt');
+var WebSocket=require('../lib/websocketcom')
 
 
 async function createDoctor(doctorData, token) {
   try {
     //const doctor=new Doctor(doctorData)
 
-    const check =Email.validateEmail(doctorData.emailId)
+    let check =Email.validateEmail(doctorData.emailId)
     console.log(doctorData, check, doctorData.emailId, token,  "--------")
 
-    const decodedToken = await Token.verifyToken(token);
+    let decodedToken = await Token.verifyToken(token);
       console.log("Decoded Token:", decodedToken);
 
-    const clinic=await Clinic.findById({_id:decodedToken.userId}) 
+    let clinic=await Clinic.findById({_id:decodedToken.userId}) 
 
-    const doctors= await Doctor.findOne({emailId:doctorData.emailId}) 
+    let doctors= await Doctor.findOne({emailId:doctorData.emailId}) 
     
     console.log(clinic,clinic.clinicName, clinic.clinicId,  doctors, doctorData, "=============--------")
     
-    const doctor = new Doctor({
+    var doctor = new Doctor({
       clinicName:clinic.clinicName,
       clinicId:clinic.clinicId, 
       phoneNo: doctorData.phoneNo,
@@ -60,30 +60,25 @@ async function createDoctor(doctorData, token) {
 async function loginDoctor(doctorData, emailId, password, confirmPw){
   try{
     //console.log(doctorData, emailId, password, confirmPw, "----------------===========")
-    const doctors=await Doctor.findOne({emailId:emailId})
-    //console.log(doctors, "-------")
+    let doctors=await Doctor.findOne({emailId:emailId})
     if(doctors==null){
       return {message: " this doctor doesnot have registerd! please go to register before login"}
     }
 
-      const token= Token.generateToken(doctors._id, 'doctor', doctors.emailId, doctors.clinicId)
+    let token= Token.generateToken(doctors._id, 'doctor', doctors.emailId, doctors.clinicId)
+   //const status=await WebSocket.updateDoctorStatus();
 
-      const decodedToken=Token.verifyToken(token)
-      console.log(doctors, token, decodedToken, "000000000")
-      //let flag=false;
-      if(password!=confirmPw){
-        return {message: "please check the password & confirmPw must be same"}
-      }
-      else{
-        //flag=true
-        const state=await Doctor.updateOne(doctors, {$set:{status:"online"}})//doctors.status="online";
-       
-        return {doctors, token}
-      }
-      // if(flag){
-      //   const state=await Doctor.updateOne(doctors, {$set:{status:"online"}})//doctors.status="online";
-      //   return {doctors, token}
-      // }
+    let decodedToken=Token.verifyToken(token)
+    //console.log(doctors, token, decodedToken, "000000000")
+
+    if(password!=confirmPw){
+      return {message: "please check the password & confirmPw must be same"}
+    }
+    else{  
+      let state=await Doctor.updateOne(doctors, {$set:{status:"online"}})//doctors.status="online" 
+      return {doctors, token}
+    }
+      
 
   }catch(err){
     throw err;
@@ -92,9 +87,9 @@ async function loginDoctor(doctorData, emailId, password, confirmPw){
 }
 async function logoutDoctor(emailId){
   try{
-    const doctors=await Doctor.findOne({emailId:emailId})
+    let doctors=await Doctor.findOne({emailId:emailId})
     console.log(doctors, "00000000000")
-    const state=await Doctor.updateOne(doctors, {$set:{status:"offline"}})
+    let state=await Doctor.updateOne(doctors, {$set:{status:"offline"}})
     console.log(doctors, "00000000000")
     return {doctors};
   }catch(error){
@@ -104,12 +99,47 @@ async function logoutDoctor(emailId){
 }
 async function getDoctorByEmail(emailId) {
   try {
-    const doctor = await Doctor.findOne({ emailId });
+    let  doctor = await Doctor.findOne({ emailId });
     return doctor;
   } catch (error) {
     throw error;
   }
 }
+
+async function getAllDoctors(emailId) {
+  try {
+    const page = 1;
+    const limit = 2;
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    const results = {};
+
+    if (endIndex < await Doctor.countDocuments().exec()) {
+      results.next = {
+        page: page + 1,
+        limit: limit
+      };
+    }
+
+    if (startIndex > 0) {
+      results.previous = {
+        page: page - 1,
+        limit: limit
+      };
+    }
+
+    results.results = await Doctor.find().limit(limit).skip(startIndex).exec();
+    console.log(results,"00000")
+    s
+    return (results);
+    
+  } catch (error) {
+    throw error;
+  }
+}
+
 
 // Add other doctor services as needed
 
@@ -117,5 +147,6 @@ module.exports = {
   createDoctor,
   getDoctorByEmail,
   loginDoctor,
-  logoutDoctor
+  logoutDoctor, 
+  getAllDoctors
 };
