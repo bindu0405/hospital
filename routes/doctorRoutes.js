@@ -5,12 +5,12 @@ const doctorService = require('../services/doctorService');
 
 router.post('/doctors', async function(req, res){
   try {
-    const doctorData = req.body;
-    const bearerHeader = req.headers['authorization']
+    let doctorData = req.body;
+    let bearerHeader = req.headers['authorization']
     if (typeof bearerHeader !== 'undefined') {
      req.token = bearerHeader.replace('Bearer ', '');
     }
-    const createdDoctor = await doctorService.createDoctor(doctorData, req.token);
+    let createdDoctor = await doctorService.createDoctor(doctorData, req.token);
     
     res.status(201).json(createdDoctor);
   } catch (error) {
@@ -20,11 +20,11 @@ router.post('/doctors', async function(req, res){
 
 router.post('/doctors/login', async function(req, res){
   try{
-    const doctorData=req.body;
-    const emailId=req.body.emailId;
-    const password=req.body.password;
-    const confirmPw=req.body.confirmPw;
-    const result=await doctorService.loginDoctor(doctorData, emailId, password,confirmPw );
+    let doctorData=req.body;
+    let emailId=req.body.emailId;
+    let password=req.body.password;
+    let confirmPw=req.body.confirmPw;
+    let result=await doctorService.loginDoctor(doctorData, emailId, password,confirmPw );
    res.status(201).json({doctor:result.doctors, token:result.token, message:result.message})
   }catch(err){
     throw err;
@@ -33,8 +33,8 @@ router.post('/doctors/login', async function(req, res){
 
 router.post('/doctors/logout', async function(req, res){
   try{
-    const emailId=req.body.emailId;
-    const result=await doctorService.logoutDoctor( emailId);
+    let emailId=req.body.emailId;
+    let result=await doctorService.logoutDoctor( emailId);
    res.status(201).json({doctor:result.doctors})
   }catch(err){
     throw err;
@@ -43,8 +43,8 @@ router.post('/doctors/logout', async function(req, res){
 
 router.get('/doctors/:emailId', async (req, res) => {
   try {
-    const emailId = req.params.emailId;
-    const doctor = await doctorService.getDoctorByEmail(emailId);
+    let emailId = req.params.emailId;
+    let doctor = await doctorService.getDoctorByEmail(emailId);
 
     if (!doctor) {
       return res.status(404).json({ message: 'Doctor not found' });
@@ -58,16 +58,23 @@ router.get('/doctors/:emailId', async (req, res) => {
 
 router.get('/getAllDoctors', async (req, res) => {
   try {
-    const emailId = req.params.emailId;
-    const doctor = await doctorService.getAllDoctors();
-
-    if (!doctor) {
-      return res.status(404).json({ message: 'Doctor not found' });
-    }
-
-    res.json(doctor.results);
+    
+    let result = await doctorService.getAllDoctors(req, res);
+    console.log(result,  ",,,,,,,,,,,,")
+    return res.status(200).json(result);
+    
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/map-collections', async (req, res) => {
+  try {
+    let result = await doctorService.mapTwoCollections();
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error mapping collections:", error);
+    res.status(500).json({ error: "An error occurred while mapping collections" });
   }
 });
 

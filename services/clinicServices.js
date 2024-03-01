@@ -9,14 +9,12 @@ let noti= require('../lib/sendnotification')
 
 async function registerClinic(clinicData,token) {    //token is nothing but req.token, pop=req.token
   try {
-    console.log(clinicData,Clinic,sendmail,clinicData.clinicEmail,  "---------------------------------")
     const decodedToken = await Token.verifyToken(token);
     console.log("Decoded Token:", decodedToken);
   
     let admin = await Admin.findById({_id:decodedToken.userId})
     console.log( admin,admin.emailId,  "+++++++++++++admin admin")
-    let clinics=await Clinic.findOne({clinicId:clinicData.clinicId});
-    let email= await Clinic.findOne({clinicEmail:clinicData.clinicEmail})
+   
    
    const { MongoClient } = require('mongodb');
    
@@ -28,8 +26,8 @@ async function registerClinic(clinicData,token) {    //token is nothing but req.
 MongoClient.connect(uri)
 .then(client => {
   console.log("Connected to MongoDB successfully");
-  const db = client.db(databaseName);
-  const collection = db.collection(collectionName);
+  var db = client.db(databaseName);
+  var collection = db.collection(collectionName);
 
   // Perform aggregation
   return collection.aggregate([
@@ -38,8 +36,9 @@ MongoClient.connect(uri)
     { $unwind: "$timings" }, // Deconstruct the items array => it seperates an arr in an arr or arr of obj.
 
     { $match: { clinicName: "rkkloll" } },
-    {$sort: { clinicId: -1 } }, // Sort by total quantity in descending order  
-    { $limit: 3} , // Get only the top 5 products
+    {$sort: { clinicId: -1 } }, 
+    
+    { $limit: 3} , 
   ]).toArray();
   
 })
@@ -49,6 +48,8 @@ MongoClient.connect(uri)
 .catch(error => {
   console.log("Error during aggregation:", error);
 });
+  let clinics=await Clinic.findOne({clinicId:clinicData.clinicId});
+  let email= await Clinic.findOne({clinicEmail:clinicData.clinicEmail}) 
 
   try {  
     if(admin!=null){

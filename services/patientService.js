@@ -12,10 +12,10 @@ console.log(Patient, "--------")
 
    async function registerPatient(patientData) {
     try {
-        const patientCount = await Patient.countDocuments();
+        let patientCount = await Patient.countDocuments();
        generatedOTP = otpGenerator.generate(6, { upperCase: true, specialChars: true, alphabets: true });
-        const nextPatientId = patientCount + 1
-        const patient=await Patient.findOne({email: patientData.email, phoneNo: patientData.phoneNo})
+        let nextPatientId = patientCount + 1
+        let patient=await Patient.findOne({email: patientData.email, phoneNo: patientData.phoneNo})
         if(patient!=null){
           return {message: "email and phoneNo already existed! please give uniqe email and phoneNo"}
         }
@@ -35,29 +35,28 @@ console.log(Patient, "--------")
 
         });
 
-        //sending email through nodemailer
-        const password= mailOptions.generateTemporaryPassword()
-        const emailSending= mailOptions.sendTemporaryPassword(password);
-         // Replace these values with your Twilio credentials
-        const accountSid = "AC9625acd569e43d4bfff5844319ec6f22"     //'YOUR_TWILIO_ACCOUNT_SID';
-        const authToken = "67dd8c44ce914c0ea803d38de2c87af7";
-        //const serviceSid =  "VAdd639396b7f254bb87086e35b541bf16"
+        
+        let password= mailOptions.generateTemporaryPassword()
+        let emailSending= mailOptions.sendTemporaryPassword(password);
+         
+        let accountSid = "AC9625acd569e43d4bfff5844319ec6f22"     //'YOUR_TWILIO_ACCOUNT_SID';
+        var authToken = "67dd8c44ce914c0ea803d38de2c87af7";
+        
 
-        const twilioPhoneNumber ='+12059272986';
-        const client = new twilio(accountSid, authToken);
+        var twilioPhoneNumber ='+12059272986';
+        var client = new twilio(accountSid, authToken);
         console.log(accountSid, authToken, twilioPhoneNumber, client, "=======")
 
-       // In-memory storage for generated OTPs (replace with a database in production)
-      const otpStorage = new Map()
-           
-      // Store the OTP in memory (replace with a database in production)
+       
+      var otpStorage = new Map()
+      
       otpStorage.set(patientData.phoneNo, generatedOTP);
       console.log(patientData.phoneNo, twilioPhoneNumber, generatedOTP, otpStorage, "========")
-      const mobileNo=patientData.phoneNo;
-      // Send the OTP via Twilio SMS
+      var mobileNo=patientData.phoneNo;
+      
       await newpatient.save();
       let countryCode=91;
-      const delayTime=  Delay.retryWithExponentialBackoff;
+      var delayTime=  Delay.retryWithExponentialBackoff;
       let otpResponse = client.verify.v2.services("VAdd639396b7f254bb87086e35b541bf16").verifications
       .create({to:`+${countryCode}${patientData.phoneNo}`,channel:"sms"})
       //.create({ body: `Your OTP is: ${generatedOTP}`, channel: 'sms',from: twilioPhoneNumber,  to: mobileNo,})
@@ -71,16 +70,16 @@ console.log(Patient, "--------")
   
 async function verifyOTP(patientData) {
   try {
-    const accountSid = "AC9625acd569e43d4bfff5844319ec6f22"; // Replace with your Twilio Account SID
-    const authToken = "67dd8c44ce914c0ea803d38de2c87af7"; // Replace with your Twilio Auth Token
-    const client = new twilio(accountSid, authToken);
+    var accountSid = "AC9625acd569e43d4bfff5844319ec6f22"; 
+    var authToken = "67dd8c44ce914c0ea803d38de2c87af7"; 
+    var client = new twilio(accountSid, authToken);
 
-    const verificationSid = patientData.sid;
+    var verificationSid = patientData.sid;
 
     console.log(verificationSid, patientData.sid,"==============");
     //const delayTime=  Delay.retryWithExponentialBackoff;
 
-    const verification = await client.verify.v2
+    var verification = await client.verify.v2
       .services("VAdd639396b7f254bb87086e35b541bf16")
       .verificationChecks
       .create({
@@ -111,34 +110,16 @@ async function verifyOTP(patientData) {
   async function loginPatient(patientData, email, otp, phoneNo){
     try{
       console.log(patientData, email, otp, phoneNo, "----------------===========")
-      const patients=await Patient.findOne({email:email, phoneNo:phoneNo})
+      var patients=await Patient.findOne({email:email, phoneNo:phoneNo})
       console.log(patients, "-------")
       if(patients==null){
         return {message: " this patient doesnot have registerd! please go to register before login"}
       }
-        const token= Token.generateToken(patients._id, 'patient', patients.email, patients.patientId)
+        var token= Token.generateToken(patients._id, 'patient', patients.email, patients.patientId)
   
-        const decodedToken=Token.verifyToken(token)
+        var decodedToken=Token.verifyToken(token)
         console.log( token, decodedToken, generatedOTP, otp,  "000000000")
-        // if(passwords!=true){
-        //    return {message: "please check the password! it is incorrect password "}
-        // }
-        // else{
-          
-
-          // Retrieve the stored OTP associated with the user's session or user ID
-        
-          // Compare the entered OTP with the stored OTP
-          if (generatedOTP === otp) {
-            // OTP is valid, proceed with user registration
-            return ({ success: true, token:token, message: 'OTP verified successfully' });
-          } else {
-            // Invalid OTP
-            return ({ success: false, message: 'Invalid OTP' });
-          }        
-          //return {patients, token}
-        //}
-  
+       return ({token, patientData})
     }catch(err){
       throw err;
     }

@@ -49,6 +49,7 @@ async function createAppointment(req, res) {
     if (decodedToken.email === appointment.patientEmail) {
       // Check if the new appointment starts after the previous appointment ends
       var previousAppointment = await Appointment.findOne({ doctorId: appointment.doctorId }).sort({ endTime: -1 });
+      console.log(previousAppointment, "00000888888666666")
       if (previousAppointment && appointment.startTime <= previousAppointment.endTime) {
         return res.status(400).json({ message: 'New appointment must start after the previous appointment ends.' });
       }
@@ -185,7 +186,13 @@ async function getAllPatientAppointments(req, res){
         }
       }
     }
-    res.status(201).json(appointments);
+
+    function removeDuplicatesWithSet(arr) {
+      return Array.from(new Set(arr.map(JSON.stringify))).map(JSON.parse);
+  }
+  const uniqueArray = removeDuplicatesWithSet(appointments, "patient");
+  console.log(uniqueArray);
+    res.status(201).json(uniqueArray);
       
   }catch(err){
     res.status(500).json({ err: err.message });

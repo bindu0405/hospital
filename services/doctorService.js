@@ -1,8 +1,14 @@
-var Doctor = require('../models/doctor');
-var Clinic = require('../models/clinicModel')
-var Email= require('../lib/validator');
-let Token= require('../loaders/jwt');
-var WebSocket=require('../lib/websocketcom')
+const  Doctor = require('../models/doctor');
+const Clinic = require('../models/clinicModel')
+const Email= require('../lib/validator');
+const Token= require('../loaders/jwt');
+//const WebSocket=require('../lib/websocketcom');
+const { MongoClient } = require('mongodb');
+
+let uri = 'mongodb://localhost:27017/appointment_system';
+let databaseName = 'appointment_system';
+let doctorCollection = 'doctors';
+let clinicCollection = 'clinics';
 
 
 async function createDoctor(doctorData, token) {
@@ -83,7 +89,6 @@ async function loginDoctor(doctorData, emailId, password, confirmPw){
   }catch(err){
     throw err;
   }
-
 }
 async function logoutDoctor(emailId){
   try{
@@ -95,7 +100,6 @@ async function logoutDoctor(emailId){
   }catch(error){
     throw error;
   }
-
 }
 async function getDoctorByEmail(emailId) {
   try {
@@ -106,47 +110,84 @@ async function getDoctorByEmail(emailId) {
   }
 }
 
-async function getAllDoctors(emailId) {
+async function getAllDoctors(req, res) {
   try {
-    const page = 1;
-    const limit = 2;
 
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
-
-    const results = {};
-
-    if (endIndex < await Doctor.countDocuments().exec()) {
-      results.next = {
-        page: page + 1,
-        limit: limit
-      };
-    }
-
-    if (startIndex > 0) {
-      results.previous = {
-        page: page - 1,
-        limit: limit
-      };
-    }
-
-    results.results = await Doctor.find().limit(limit).skip(startIndex).exec();
-    console.log(results,"00000")
-    s
-    return (results);
     
+    var client = await MongoClient.connect(uri);
+    let db = client.db(databaseName);
+    let alldoctors = db.collection(doctorCollection);
+    console.log(alldoctors, "00099888")
+    
+    let result = await alldoctors.aggregate([
+      { $match: { clinicName: 'rk' } },
+     // { $sort: { clinicId: -1 } },
+      { $skip:parseInt(req.query.page)*parseInt(req.query.size) },
+      { $limit: parseInt(req.query.size) },
+      { $sort: { clinicId: -1 } },
+      //{ $project: { clinicName: 'rkkloll', firstName: 'john', lastName: 'peter',emailId: 'll@gail.com',specialty: [ 'ortho' ] }}
+    ]).toArray();
+
+    console.log("Aggregation result:", result);
+    res.json(result); 
   } catch (error) {
-    throw error;
+    console.log("Error:", error);
+    res.status(500).json({ "error": error }); 
   }
 }
 
+async function mapTwoCollections() {
+  try {
+    var client = await MongoClient.connect(uri);
+    console.log("Connected to MongoDB successfully");
+    let db = client.db(databaseName);
+  
+    let alldoctors = db.collection(doctorCollection);
+    let allclinics = db.collection(clinicCollection);
 
-// Add other doctor services as needed
+    // Perform aggregation to map doctors with clinics
+    const result = await allclinics.aggregate([
+      { $match: { clinicName: "rkkloll" }},
+      {
+        $lookup: {
+          from: "doctors",
+          localField: "clinicName",
+          foreignField: "clinicName",
+          as: "doctors"
+        }
+      },
+      {
+        $unwind: { path: "$doctors", preserveNullAndEmptyArrays: true }
+      },
+      {
+        $group: {
+            _id: "6579821819c66279900ccf04", // Group by clinic ID
+          clinicName: { $last: "$clinicName" },
+          //clinicId: { $addToSet: "$clinicId" },
+          doctors: { $addToSet: "$doctors" }
+        }
+      }
+    ]).toArray();
+    
+    console.log("Mapped result:", result);
+    return result;
+  } catch (error) {
+    console.error("Error mapping collections:", error);
+    throw error;
+  } finally {
+    // Close the connection
+    if (client) {
+      await client.close();
+      console.log("Disconnected from MongoDB");
+    }
+  }
+}
 
 module.exports = {
   createDoctor,
   getDoctorByEmail,
   loginDoctor,
   logoutDoctor, 
-  getAllDoctors
+  getAllDoctors,
+  mapTwoCollections
 };

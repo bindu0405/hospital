@@ -5,9 +5,9 @@ const patientService = require('../services/patientService');
 // Route for creating a new patient for register
 router.post('/registerPatient', async (req, res) => {
   try {
-    const patientData = req.body;
+    let patientData = req.body;
 
-    const newPatient = await patientService.registerPatient(patientData);
+    let newPatient = await patientService.registerPatient(patientData);
     res.status(201).json(newPatient);
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -16,11 +16,11 @@ router.post('/registerPatient', async (req, res) => {
 
 router.post('/patients/login', async function(req, res){
   try{
-    const patientData=req.body;
-    const email=req.body.email;
-    const otp=req.body.otp;
-    const phoneNo=req.body.phoneNo
-    const result=await patientService.loginPatient(patientData, email, otp, phoneNo );
+    let patientData=req.body;
+    let email=req.body.email;
+    let otp=req.body.otp;
+    let phoneNo=req.body.phoneNo
+    let result=await patientService.loginPatient(patientData, email, otp, phoneNo );
    res.status(201).json({ token:result.token, message:result.message})
   }catch(err){
     throw err;
@@ -31,7 +31,7 @@ router.post('/verifyOTP', async function(req, res){
   try{
    
     //console.log(otp, "otp---------", {required:true})
-    const result=await patientService.verifyOTP(req.body);
+    let result=await patientService.verifyOTP(req.body);
     res.status(201).json({result})
   }catch(err){
     throw err;
@@ -42,8 +42,8 @@ router.post('/verifyOTP', async function(req, res){
 // Route for retrieving patient details by ID
 router.get('/:patientId', async (req, res) => {
   try {
-    const patientId = req.params.patientId;
-    const patient = await patientService.getPatientById(patientId);
+    let patientId = req.params.patientId;
+    let patient = await patientService.getPatientById(patientId);
     if (!patient) {
       res.status(404).json({ success: false, error: 'Patient not found' });
       return;
