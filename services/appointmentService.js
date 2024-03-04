@@ -1,8 +1,8 @@
-let Appointment = require('../models/appointmentModel');
-let Doctor= require('../models/doctor')
-let Patient= require('../models/patientModel')
-let Token= require('../loaders/jwt') 
-let websocket= require('../lib/websocketcom')
+const Appointment = require('../models/appointmentModel');
+const Doctor= require('../models/doctor')
+const Patient= require('../models/patientModel')
+const Token= require('../loaders/jwt') 
+const websocket= require('../lib/websocketcom')
 //let noti= require('../lib/sendnotification')
 
 async function doctorsData(req, res){
@@ -53,7 +53,8 @@ async function createAppointment(req, res) {
       if (previousAppointment && appointment.startTime <= previousAppointment.endTime) {
         return res.status(400).json({ message: 'New appointment must start after the previous appointment ends.' });
       }
-      let savedAppointment = await appointment.save();
+      let savedAppointment = await appointment.save();l
+      npppm               
       res.status(201).json({ savedAppointment, doctor, patient });
     } else {
       res.status(403).json({ message: "Invalid patient credentials" });
@@ -77,15 +78,15 @@ async function getAllDoctorAppointments(req, res) {
     let decodedToken = await Token.verifyToken(token);
     console.log("Decoded Token:", decodedToken, decodedToken.email);
     let appointments = await Appointment.find({ doctorId: decodedToken.userId });
-    const mails = appointments.map(obj => obj.patientEmail);
+    let mails = appointments.map(obj => obj.patientEmail);
     console.log(appointments, mails, "--------------")
     var Array = [];
 
     for (let i = 0; i < appointments.length; i++) {
-      const doctor = await Doctor.findOne({ emailId: decodedToken.email });
+      let doctor = await Doctor.findOne({ emailId: decodedToken.email });
 
       if (appointments[i].doctorId == doctor._id) {
-        const doctorDetails = {
+        let doctorDetails = {
           doctorId: doctor._id,
           email: doctor.emailId,
           clinicName: doctor.clinicName,
@@ -93,11 +94,11 @@ async function getAllDoctorAppointments(req, res) {
         }
 
         console.log(doctorDetails, appointments[i].doctorId, doctor._id, "============")
-        const patient = await Patient.find({ email: mails });
+        let patient = await Patient.find({ email: mails });
 
         for (let j = 0; j < patient.length; j++) {
           if (appointments[i].patientEmail == patient[j].email) {
-            const patientDetails = {
+            let patientDetails = {
               patientId: patient[j].patientId,
               firstName: patient[j].firstName,
               lastName: patient[j].lastName,
@@ -109,12 +110,12 @@ async function getAllDoctorAppointments(req, res) {
             console.log(patientDetails, appointments[i].patientEmail, patient[j].email)
 
             // Check for duplicate patient before pushing into Array
-            const isDuplicatePatient = Array.some(item =>
+            let isDuplicatePatient = Array.some(item =>
               item.patientData.patientId === patientDetails.patientId
             );
 
             if (!isDuplicatePatient) {
-              const appointment = {
+              let appointment = {
                 doctorData: doctorDetails,
                 patientData: patientDetails,
                 startTime: appointments[i].startTime,
@@ -145,15 +146,15 @@ async function getAllPatientAppointments(req, res){
 
     var decodedToken = await Token.verifyToken(token);
     console.log("Decoded Token:", decodedToken, decodedToken.email);
-    const appointment=await Appointment.find({patientEmail:decodedToken.email})
-    const email = appointment.map(obj => obj.patientEmail);
-    const patient = await Patient.findOne({email:email})
+    let appointment=await Appointment.find({patientEmail:decodedToken.email})
+    let email = appointment.map(obj => obj.patientEmail);
+    let patient = await Patient.findOne({email:email})
        
     console.log(email, appointment, patient,"==========")
     var appointments=[]
     for(i=0;i<appointment.length;i++){
       if(appointment[i].patientEmail==patient.email){
-        const patientData = {
+        let patientData = {
           patientId: patient.patientId,
           firstName: patient.firstName,
           lastName: patient.lastName,
@@ -163,7 +164,7 @@ async function getAllPatientAppointments(req, res){
         }
         console.log(patientData, appointment[i].patientEmail, patient.email, "++++++++++++++++")
       
-        const doctorId = appointment.map(obj=> obj.doctorId )
+        let doctorId = appointment.map(obj=> obj.doctorId )
         var doctor=await Doctor.find({_id:doctorId})
         for(j=0;j<doctor.length;j++){
           if(appointment[i].doctorId==doctor[j]._id){
@@ -175,7 +176,7 @@ async function getAllPatientAppointments(req, res){
             }
             console.log(doctorData, appointment[i].doctorId, doctor[j]._id)  
           
-            const arr={
+            let arr={
               patient:patientData,
               doctor:doctorData,
               startTime:appointment[i].startTime,
@@ -190,7 +191,7 @@ async function getAllPatientAppointments(req, res){
     function removeDuplicatesWithSet(arr) {
       return Array.from(new Set(arr.map(JSON.stringify))).map(JSON.parse);
   }
-  const uniqueArray = removeDuplicatesWithSet(appointments, "patient");
+  let uniqueArray = removeDuplicatesWithSet(appointments, "patient");
   console.log(uniqueArray);
     res.status(201).json(uniqueArray);
       
@@ -202,7 +203,7 @@ async function getAllPatientAppointments(req, res){
 async function confirmAppointment(req, res){
   console.log("==========")
   try{
-    const appointments= req.body;
+    let appointments= req.body;
     var token;
     var bearerHeader = req.headers['authorization']
     if (typeof bearerHeader !== 'undefined') {
@@ -225,7 +226,7 @@ async function confirmAppointment(req, res){
     }
 
     appointment.status = 'completed';
-    const updatedAppointment = await appointment.save();
+    let updatedAppointment = await appointment.save();
 
     res.status(500).json({updatedAppointment})
 

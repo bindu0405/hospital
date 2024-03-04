@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const appointmentStatusEnum = ['pending', 'completed', 'success', 'rejected', 'canceled'];
 
 // Define Appointment Schema
-const appointmentSchema = new mongoose.Schema({
+let appointmentSchema = new mongoose.Schema({
   doctorId: {
     type: String,
     ref: 'Doctor', // Reference to the Doctor model
@@ -35,6 +35,6 @@ const appointmentSchema = new mongoose.Schema({
 });
 
 // Create Appointment model
-const Appointment = mongoose.model('Appointment', appointmentSchema);
+var Appointment = mongoose.model('Appointment', appointmentSchema);
 
 module.exports = Appointment;

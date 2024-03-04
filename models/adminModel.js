@@ -2,9 +2,9 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
-const saltRounds = 10;
+let saltRounds = 10;
 
-const adminSchema = new mongoose.Schema({
+let adminSchema = new mongoose.Schema({
   name: { type: String, required: true },
   emailId: { type: String, required: true, unique: true },
   password: { type: String, required: true },
@@ -25,6 +25,6 @@ adminSchema.pre('save', async function (next) {
   }
 });
 
-const Admin = mongoose.model('Admin', adminSchema);
+var Admin = mongoose.model('Admin', adminSchema);
 
 module.exports = Admin;

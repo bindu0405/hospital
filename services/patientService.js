@@ -6,7 +6,6 @@ const Delay = require('../lib/delay')
 const mailOptions=require('../lib/sendmail')
 
 var generatedOTP;
-var pop;
 console.log(Patient, "--------")
 
 
@@ -20,7 +19,7 @@ console.log(Patient, "--------")
           return {message: "email and phoneNo already existed! please give uniqe email and phoneNo"}
         }
         
-        const newpatient = new Patient({
+        let newpatient = new Patient({
           patientId:nextPatientId,
           firstName:patientData.firstName,
           lastName:patientData.lastName,

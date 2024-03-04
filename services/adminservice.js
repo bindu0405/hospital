@@ -32,8 +32,7 @@ async function loginAdmin( req, emailId, password,) {
     console.log(admin, "9090")
 
     if(admin==null){
-      throw new Error('Incorrect emaiiId');
-      
+      throw new Error('Incorrect emaiiId');  
     }
     var plainPassword=password;
     var hashedPassword=admin.password;

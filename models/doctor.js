@@ -1,7 +1,8 @@
 
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
 
-const doctorSchema = new mongoose.Schema({
+let doctorSchema = new mongoose.Schema({
   role: { type: String, default: "DOCTOR" },
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
@@ -26,8 +27,6 @@ const doctorSchema = new mongoose.Schema({
   availableTimings: { type: Array, required: true },
 });
 
-const bcrypt = require('bcrypt');
-
 doctorSchema.pre('save', async function (next) {
   if (this.isModified('password')) {
     try {
@@ -43,6 +42,6 @@ doctorSchema.pre('save', async function (next) {
   }
 });
 
-const Doctor = mongoose.model('Doctor', doctorSchema);
+var Doctor = mongoose.model('Doctor', doctorSchema);
 
 module.exports = Doctor;

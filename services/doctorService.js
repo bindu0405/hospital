@@ -146,7 +146,7 @@ async function mapTwoCollections() {
     let allclinics = db.collection(clinicCollection);
 
     // Perform aggregation to map doctors with clinics
-    const result = await allclinics.aggregate([
+    let result = await allclinics.aggregate([
       { $match: { clinicName: "rkkloll" }},
       {
         $lookup: {

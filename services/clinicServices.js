@@ -3,20 +3,20 @@ const Token =require('../loaders/jwt')
 const Admin = require('../models/adminModel')
 const Email = require('../lib/validator');
 const sendmail = require('../lib/sendmail');
-let noti= require('../lib/sendnotification')
-
+const noti= require('../lib/sendnotification')
+const { MongoClient } = require('mongodb');
 
 
 async function registerClinic(clinicData,token) {    //token is nothing but req.token, pop=req.token
   try {
-    const decodedToken = await Token.verifyToken(token);
+    let decodedToken = await Token.verifyToken(token);
     console.log("Decoded Token:", decodedToken);
   
     let admin = await Admin.findById({_id:decodedToken.userId})
     console.log( admin,admin.emailId,  "+++++++++++++admin admin")
    
    
-   const { MongoClient } = require('mongodb');
+   
    
    let uri = 'mongodb://localhost:27017/appointment_system';
    let databaseName = 'appointment_system';
@@ -28,8 +28,7 @@ MongoClient.connect(uri)
   console.log("Connected to MongoDB successfully");
   var db = client.db(databaseName);
   var collection = db.collection(collectionName);
-
-  // Perform aggregation
+  
   return collection.aggregate([
     // Your aggregation pipeline stages here
     //{ $group: {  _id: "$clinicName",  total: {$sum: "$clinics" }} }
@@ -37,11 +36,9 @@ MongoClient.connect(uri)
 
     { $match: { clinicName: "rkkloll" } },
     {$sort: { clinicId: -1 } }, 
-    
     { $limit: 3} , 
   ]).toArray();
-  
-})
+  })
 .then(result => {
   console.log("Aggregation result:", result);
 })
@@ -63,7 +60,7 @@ MongoClient.connect(uri)
         //send email
             //let password = sendmail.generateTemporaryPassword();
             //clinicData.password = password;
-             const clinic= new Clinic(clinicData);
+             let clinic= new Clinic(clinicData);
              await clinic.save();
           //let emailSending= sendmail.sendTemporaryPassword( password)
 
@@ -109,7 +106,7 @@ async function getClinicById(clinicId, req) {
   console.log(Clinic,clinicId,   "oppppppo")
   try {
      console.log("oppppppo")
-     const clinic = await Clinic.findOne({clinicId});
+     let clinic = await Clinic.findOne({clinicId});
      console.log(clinic,clinicId,  "-----------get")
     return clinic;
   } catch (error) {
