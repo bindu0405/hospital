@@ -53,8 +53,8 @@ async function createAppointment(req, res) {
       if (previousAppointment && appointment.startTime <= previousAppointment.endTime) {
         return res.status(400).json({ message: 'New appointment must start after the previous appointment ends.' });
       }
-      let savedAppointment = await appointment.save();l
-      npppm               
+      let savedAppointment = await appointment.save();
+                 
       res.status(201).json({ savedAppointment, doctor, patient });
     } else {
       res.status(403).json({ message: "Invalid patient credentials" });
@@ -97,6 +97,7 @@ async function getAllDoctorAppointments(req, res) {
         let patient = await Patient.find({ email: mails });
 
         for (let j = 0; j < patient.length; j++) {
+
           if (appointments[i].patientEmail == patient[j].email) {
             let patientDetails = {
               patientId: patient[j].patientId,

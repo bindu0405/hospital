@@ -11,8 +11,8 @@ async function registerAdmin(adminData){
       )
     if(map){
       console.log(map, admin.emailId, "3333")
-      const result = await admin.aggregate(pipeline).toArray();
-      console.log(result, "=====")
+      //const result = await admin.aggregate(pipeline).toArray();
+      //console.log(result, "=====")
       await admin.save();
       return admin;
     }
@@ -20,7 +20,7 @@ async function registerAdmin(adminData){
       throw new Error('Invalid emailId');
     }
   } catch (error) {
-    throw error;
+    throw error;  
   }
 }
 
